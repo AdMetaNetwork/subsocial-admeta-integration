@@ -9,7 +9,6 @@ import Chip from './components/Chip'
 import useApi from './hooks/use-api';
 import {polkadot_network} from './utils/constant';
 import CallAdMeta from "./utils/call-admeta";
-import {connectWallet} from "./utils/tools";
 import {Spin} from 'antd';
 
 import Button from "./components/Button";
@@ -129,14 +128,19 @@ export default function App() {
         title: postInfo.title,
         image: postInfo.image,
         tags: postInfo.tags,
-        summary: postInfo.summary
+        summary: postInfo.summary,
+        link: postInfo.link
       }])
     }
   }
 
   const fetchPost = async (id: string = '1') => {
+    if (!isReady) {
+      console.log({message: 'Unable to connect to the API.'})
+      return
+    }
     const a = await api!.findPost({id})
-    console.log(a)
+
     setPostList([...postList, a?.content])
   }
 
@@ -247,6 +251,7 @@ export default function App() {
                 }
 
                 <div className='post-summary'>{item.summary}</div>
+                <div className='post-links'>{item.link}</div>
                 {
                   item.tags && item.tags.length
                   &&
