@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@import "~antd/dist/reset.css";
 * {
   box-sizing: border-box;
   padding: 0;
@@ -88,16 +92,18 @@ a:focus {
 
 .header {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-  margin-top: 5rem;
-  margin-bottom: 3rem;
+  padding: 0 20px;
+  position: fixed;
+  background: #000;
+  justify-content: space-between;
+  align-items: center;
+  left: 0;
+  right: 0;
 }
 
 .title {
-  margin-bottom: 1.25rem;
   font-weight: 600;
+  color: #fff;
 }
 
 .connection-container {
@@ -106,6 +112,7 @@ a:focus {
 
 .connection {
   margin-bottom: 0.5rem;
+  color: #fff;
 }
 
 .connection-chip {
@@ -187,4 +194,88 @@ a:focus {
   color: #435985;
   text-align: center;
   margin-top: 2rem;
+}
+
+.post-edit {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.post-edit .post-box {
+  width: 500px;
+  display: flex;
+  flex-direction: column;
+}
+
+.post-edit .post-box .post-text {
+  width: 100%;
+  height: 100px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.post-edit .post-box .post-img {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 10px;
+}
+
+.post-list {
+
+}
+
+.post-list-title {
+  font-size: 20px;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.post-list .post-item {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 10px;
+  border-radius: 20px;
+  background: #eee;
+  margin-bottom: 10px;
+}
+
+.post-list .post-item .post-name {
+  font-size: 16px;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.post-list .post-item .post-imgs img {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 10px;
+}
+
+.post-list .post-item .post-summary {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.post-list .post-item .post-links {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.post-tags {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+.post-tags div {
+  font-size: 12px;
+  padding: 2px 6px;
+  background: #fec400;
+  border-radius: 10px;
+  margin-right: 10px;
 }

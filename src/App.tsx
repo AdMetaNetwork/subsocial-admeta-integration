@@ -1,13 +1,47 @@
-import { useContext, useEffect, useState } from 'react'
-import { SubsocialContext } from './subsocial/provider'
+import {useContext, useEffect, useState, useMemo} from 'react'
+import {SubsocialContext} from './subsocial/provider'
 import polkadotjs from './subsocial/wallets/polkadotjs'
-import { IpfsContent } from '@subsocial/api/substrate/wrappers'
-import { SpaceData } from '@subsocial/api/types'
-import { CustomNetwork, Mainnet, Testnet } from './subsocial/config'
-import Button from './components/Button'
+import {IpfsContent} from '@subsocial/api/substrate/wrappers'
+import {SpaceData} from '@subsocial/api/types'
+import {CustomNetwork, Mainnet, Testnet} from './subsocial/config'
 import './App.css'
 import Chip from './components/Chip'
-import Space from './components/Space'
+import useApi from './hooks/use-api';
+import {polkadot_network} from './utils/constant';
+import CallAdMeta from "./utils/call-admeta";
+import {connectWallet} from "./utils/tools";
+import {Spin} from 'antd';
+
+import Button from "./components/Button";
+
+interface PostInfo {
+  image: string,
+  link: string,
+  tags: string[],
+  summary: string,
+  title?: string,
+}
+
+interface AdInfo {
+  amount: number
+  bond?: number
+  cpi: number
+  endBlock: number
+  approved?: boolean
+  metadata: string
+  target: string
+  title: string
+  preference: any
+  proposer?: string
+}
+
+const testInfo: PostInfo = {
+  image: '',
+  summary: 'A Test Recommendation',
+  link: '',
+  tags: []
+}
+
 
 // This is the start of the React app built using Subsocial Starter.
 export default function App() {
@@ -16,8 +50,16 @@ export default function App() {
   // changeNetwork (changing from testnet(default) to mainnet/localnet).
   // It also gives you access to getters like [isReady] that helps you know [api]
   // initlaization status.
-  const { isReady, api, network, changeNetwork } = useContext(SubsocialContext)
+  const {isReady, api, network, changeNetwork} = useContext(SubsocialContext)
   const [space, setSpace] = useState<SpaceData>()
+  const [postInfo, setPostInfo] = useState<PostInfo>({image: '', link: '', summary: '', tags: []})
+  const [textValue, setTextValue] = useState<string>()
+  const {adApi} = useApi(polkadot_network)
+  const _api = useMemo(() => adApi, [adApi])
+  const [match, setMatch] = useState(false)
+  const [spin, setSpin] = useState(false)
+
+  const [postList, setPostList] = useState<any[]>([])
 
   useEffect(() => {
     console.log(`Is API ready: ${isReady}`)
@@ -30,73 +72,6 @@ export default function App() {
     return 'Custom Network'
   }
 
-  // Once [api] is initialized, all the API methods from Subsocial SDK are in
-  // ready-to-use condition. For example: Fetching data about a Space.
-  //
-  // To know more about Subsocial SDK methods, Checkout:
-  // Quick Reference Guide: https://docs.subsocial.network/docs/develop/quick-reference
-  // Subsocial Playground:  https://play.subsocial.network
-  const getSpace = async () => {
-    if (space) {
-      setSpace(undefined)
-      return
-    }
-    if (!isReady) {
-      console.log({ message: 'Unable to connect to the API.' })
-      return
-    }
-    const spaceId = '1005'
-    const res = await api!.findSpace({ id: spaceId })
-    setSpace(res)
-    console.log(res)
-  }
-
-  // Creating a space on Subsocial network.
-  const createSpace = async () => {
-    setSpace(undefined)
-
-    // Always assure, the [api] is not null using [isReady] property.
-    if (!isReady) {
-      console.log({ message: 'Unable to connect to the API.' })
-      return
-    }
-
-    if (getNetworkName(network) === 'Mainnet') {
-      console.log({
-        message: 'You need to use your own IPFS endpoint to store data.',
-      })
-      return
-    }
-
-    // Saves this data on IPFS.
-    // On testnet, the data is stored on CRUST IPFS test mnemonic automatically.
-    //
-    // To change the IPFS either pass [CustomNetwork] or call [setupCrustIPFS] with
-    // your mnemonic (MAKE SURE TO HIDE MNEOMIC BEFORE UPLOADING TO PUBLIC NETWORK).
-    const cid = await api!.ipfs.saveContent({
-      about:
-        'Subsocial is an open protocol for decentralized social networks and marketplaces. It`s built with Substrate and IPFS',
-      image: null,
-      name: 'Subsocial',
-      tags: ['subsocial'],
-    })
-    const substrateApi = await api!.blockchain.api
-
-    const spaceTransaction = substrateApi.tx.spaces.createSpace(
-      IpfsContent(cid),
-      null // Permissions config (optional)
-    )
-
-    // Using the [polkadotjs] property, imported from context hook.
-    // This gives you with a set of methods like [getAllAccounts], [logTransaction],
-    // [signAndSendTx], etc. These are using Polkadotjs extension library internally.
-    const accounts = await polkadotjs.getAllAccounts()
-    if (accounts.length > 0) {
-      await polkadotjs.signAndSendTx(spaceTransaction, accounts[0].address)
-      alert('API response added in browser console logs.')
-    }
-  }
-
   const toggleNetwork = async () => {
     if (network === Testnet) {
       changeNetwork(Mainnet)
@@ -105,12 +80,75 @@ export default function App() {
     }
   }
 
+  const getAdMetaAd = () => {
+    const sender = '5FumNjmQzxBF5Zs6WYeS3QwVuUxbzWvoZyqENMNiGu1Vksym'
+    const pk = new CallAdMeta(sender, _api!)
+    pk.getUserAds(sender).then((d: any) => {
+
+      const list = d.info as AdInfo[];
+      console.log(list)
+      setSpin(false)
+      setPostInfo({
+        title: list[0].title,
+        image: list[0].metadata,
+        summary: list[0].title,
+        link: list[0].target,
+        tags: list[0].preference.tags
+      })
+    })
+  }
+
+
+  const createNewPost = async () => {
+    if (!isReady) {
+      console.log({message: 'Unable to connect to the API.'})
+      return
+    }
+    const cid = await api!.ipfs.saveContent({
+      title: postInfo.title,
+      image: postInfo.image,
+      tags: postInfo.tags,
+      body: postInfo.summary
+    })
+
+    console.log({
+      title: postInfo.title,
+      image: postInfo.image,
+      tags: postInfo.tags,
+      body: postInfo.summary
+    })
+
+    const substrateApi = await api!.blockchain.api
+    const accounts = await polkadotjs.getAllAccounts()
+    const spaceTransaction = substrateApi.tx.posts.createPost('1', {RegularPost: null}, IpfsContent(cid))
+    if (accounts.length > 0) {
+      await polkadotjs.signAndSendTx(spaceTransaction, accounts[0].address)
+      // @ts-ignore
+      // fetchPost(cid)
+      setPostList([...postList, {
+        title: postInfo.title,
+        image: postInfo.image,
+        tags: postInfo.tags,
+        summary: postInfo.summary
+      }])
+    }
+  }
+
+  const fetchPost = async (id: string = '1') => {
+    const a = await api!.findPost({id})
+    console.log(a)
+    setPostList([...postList, a?.content])
+  }
+
+
+  // @ts-ignore
+  // @ts-ignore
   return (
     <main>
-      <div className='header'>
-        <h1 className='title'>Welcome to Subsocial Starter</h1>
-        <div className='connection-container'>
-          <div className='connection'>
+      <Spin spinning={spin}>
+        <div className='header'>
+          <h1 className='title left'>AdMeta Subsocial</h1>
+          <div className='connection right'>
             You are{' '}
             {isReady ? (
               <Chip className='connection-chip' size='small' color='green'>
@@ -123,63 +161,110 @@ export default function App() {
             )}{' '}
             to Subsocial's {getNetworkName(network)}
           </div>
-          <div className='connection'>
-            and the configuration can be seen in{' '}
-            <Chip className='connection-chip' size='small' color='blue'>
-              subsocial/config.ts
-            </Chip>
-            .
-          </div>
         </div>
-        <p>
-          Check out our{' '}
-          <a
-            target='_blank'
-            rel='noreferrer'
-            href='https://docs.subsocial.network/docs/develop/'>
-            docs
-          </a>{' '}
-          and try the{' '}
-          <a
-            target='_blank'
-            rel='noreferrer'
-            href='https://play.subsocial.network/'>
-            Playground
-          </a>
+        <p style={{color: '#000', paddingTop: 100, fontSize: 20, marginBottom: 20, fontWeight: 'bold'}}>
+          AdMeta Subsocial will quickly create post templates for you.
         </p>
-      </div>
-      <div className='button-container'>
-        <Button
-          isActive={!!space}
-          onClick={getSpace}
-          title='Fetch Space'
-          loadingText='Loading...'>
-          Fetch Space
-        </Button>
-        <Button
-          onClick={createSpace}
-          title='Create Space'
-          loadingText='Sending...'
-        />
-        <Button
-          onClick={toggleNetwork}
-          title='Toggle Network'
-          loadingText='Loading...'
-        />
-      </div>
-      {space ? (
-        <div>
-          <Space spaceData={space} />
-          <p className='space-full-response'>
-            Open the web developer console to see the full response.
-          </p>
+        <div className="post-edit">
+          <div className="post-box">
+            {
+              match
+                ?
+                <>
+                  <div style={{marginBottom: 10}}>{textValue}<br/>--------<br/>{postInfo.summary}<a
+                    href={postInfo.link}> {postInfo.link}</a></div>
+                  <img src={postInfo.image} className='post-img' alt=""/>
+                  {
+                    postInfo.tags && postInfo.tags.length
+                    &&
+                      <div className='post-tags' style={{marginBottom: 10}}>
+                        {
+                          postInfo.tags.map((t: any, i: any) => (
+                            <div key={i}>{t}</div>
+                          ))
+                        }
+                      </div>
+                  }
+                </>
+                :
+                <>
+                <textarea
+                  name=""
+                  className="post-text"
+                  value={textValue}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setTextValue(v)
+                    const r = new RegExp(/@admeta/g)
+                    if (r.test(v)) {
+                      setMatch(true)
+                      setSpin(true)
+                      getAdMetaAd()
+                    } else {
+                      setMatch(false)
+                    }
+                  }}
+                ></textarea>
+                  {
+                    postInfo.image
+                    &&
+                      <img src={postInfo.image} className='post-img' alt=""/>
+                  }
+                </>
+            }
+
+
+          </div>
+
         </div>
-      ) : (
-        <div className='dev-console-notice'>
-          <img src='/rocket.png' alt='rocket' />
-          <p>Open the web developer console to see the response.</p>
+
+        <div className='button-container'>
+          <Button
+            onClick={fetchPost}
+            title='Get Post'
+            loadingText='Sending...'
+          />
+          <Button
+            onClick={createNewPost}
+            title='Create Post'
+            loadingText='Loading...'
+          />
         </div>
-      )}
+
+        <div className='post-list'>
+          <div className='post-list-title'>Subscribing to published posts</div>
+          {
+            postList.map((item, index) => (
+              <div className='post-item' key={index}>
+                <div className='post-name'>{item.title}</div>
+                {
+                  item.image
+                  &&
+                    <div className='post-imgs'>
+                        <img src={item.image.includes('http') ? item.image : `https://ipfs.io/ipfs/${item.image}`}
+                             alt=""/>
+                    </div>
+                }
+
+                <div className='post-summary'>{item.summary}</div>
+                {
+                  item.tags && item.tags.length
+                  &&
+                    <div className='post-tags'>
+                      {
+                        item.tags.map((t: any, i: any) => (
+                          <div key={i}>{t}</div>
+                        ))
+                      }
+                    </div>
+                }
+
+              </div>
+            ))
+          }
+
+        </div>
+      </Spin>
     </main>
   )
 }
