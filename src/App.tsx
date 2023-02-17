@@ -213,7 +213,7 @@ export default function App() {
                   onChange={(e) => {
                     const v = e.target.value;
                     setTextValue(v)
-                    const r = new RegExp(/@admeta/g)
+                    const r = new RegExp(/#admeta/g)
                     if (r.test(v)) {
                       setMatch(true)
                       setSpin(true)
