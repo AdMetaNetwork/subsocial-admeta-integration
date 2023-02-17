@@ -127,7 +127,7 @@ export default function App() {
       // @ts-ignore
       // fetchPost(cid)
       setPostList([...postList, {
-        title: `${textValue?.replace(/#admeta/, '')}`+" \n\n----\n "+`${postInfo.title}`,
+        title: `${textValue?.replace(/#admeta/, '')}`,
         image: postInfo.image,
         tags: postInfo.tags,
         summary: postInfo.summary,
