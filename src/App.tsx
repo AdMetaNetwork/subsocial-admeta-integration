@@ -127,7 +127,7 @@ export default function App() {
       // @ts-ignore
       // fetchPost(cid)
       setPostList([...postList, {
-        title: `${textValue?.replace(/@admeta/, '')} ---- ${postInfo.title}`,
+        title: `${textValue?.replace(/#admeta/, '')} \n\n----\n ${postInfo.title}`,
         image: postInfo.image,
         tags: postInfo.tags,
         summary: postInfo.summary,
@@ -162,7 +162,7 @@ export default function App() {
     <main>
       <Spin spinning={spin}>
         <div className='header'>
-          <h1 className='title left'>AdMeta Subsocial</h1>
+          <h1 className='title left'>Subsocial - AdMeta Integrated</h1>
           <div className='connection right'>
             You are{' '}
             {isReady ? (
@@ -176,12 +176,12 @@ export default function App() {
             )}{' '}
             to Subsocial's {getNetworkName(network)}
             {' ---- '}
-            Address:
+            Connected wallet:
             {address}
           </div>
         </div>
         <p style={{color: '#000', paddingTop: 100, fontSize: 20, marginBottom: 20, fontWeight: 'bold'}}>
-          AdMeta Subsocial will quickly create post templates for you.
+          Post something with "#admeta", and monetize your traffic easily.
         </p>
         <div className="post-edit">
           <div className="post-box">
@@ -250,7 +250,7 @@ export default function App() {
         </div>
 
         <div className='post-list'>
-          <div className='post-list-title'>Subscribing to published posts</div>
+          <div className='post-list-title'>New posts:</div>
           {
             postList.map((item, index) => (
               <div className='post-item' key={index}>
