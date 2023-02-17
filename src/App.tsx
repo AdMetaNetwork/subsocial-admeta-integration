@@ -57,6 +57,7 @@ export default function App() {
   const _api = useMemo(() => adApi, [adApi])
   const [match, setMatch] = useState(false)
   const [spin, setSpin] = useState(false)
+  const [address, setAddress] = useState<string>(localStorage.getItem('_select_account') || '')
 
   const [postList, setPostList] = useState<any[]>([])
 
@@ -119,6 +120,7 @@ export default function App() {
 
     const substrateApi = await api!.blockchain.api
     const accounts = await polkadotjs.getAllAccounts()
+    setAddress(accounts[0].address)
     const spaceTransaction = substrateApi.tx.posts.createPost('1', {RegularPost: null}, IpfsContent(cid))
     if (accounts.length > 0) {
       await polkadotjs.signAndSendTx(spaceTransaction, accounts[0].address)
@@ -164,6 +166,9 @@ export default function App() {
               </Chip>
             )}{' '}
             to Subsocial's {getNetworkName(network)}
+            {' ---- '}
+            Address:
+            {address}
           </div>
         </div>
         <p style={{color: '#000', paddingTop: 100, fontSize: 20, marginBottom: 20, fontWeight: 'bold'}}>
