@@ -126,6 +126,15 @@ export default function App() {
       await polkadotjs.signAndSendTx(spaceTransaction, accounts[0].address)
       // @ts-ignore
       // fetchPost(cid)
+      setMatch(false)
+      setTextValue('')
+      setPostInfo({
+        image: '',
+        link: '',
+        tags: [],
+        summary: '',
+        title: ''
+      })
       setPostList([...postList, {
         title: postInfo.title,
         image: postInfo.image,
