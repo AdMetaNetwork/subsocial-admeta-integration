@@ -256,7 +256,7 @@ export default function App() {
                 }
 
                 <div className='post-summary'>{item.summary}</div>
-                <div className='post-links'>{item.link}</div>
+                <div className='post-links'><a target='_blank' href={item.link}>{item.link}</a></div>
                 {
                   item.tags && item.tags.length
                   &&
