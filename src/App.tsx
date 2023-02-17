@@ -126,6 +126,13 @@ export default function App() {
       await polkadotjs.signAndSendTx(spaceTransaction, accounts[0].address)
       // @ts-ignore
       // fetchPost(cid)
+      setPostList([...postList, {
+        title: `${textValue?.replace(/@admeta/, '')} ---- ${postInfo.title}`,
+        image: postInfo.image,
+        tags: postInfo.tags,
+        summary: postInfo.summary,
+        link: postInfo.link
+      }])
       setMatch(false)
       setTextValue('')
       setPostInfo({
@@ -135,13 +142,6 @@ export default function App() {
         summary: '',
         title: ''
       })
-      setPostList([...postList, {
-        title: postInfo.title,
-        image: postInfo.image,
-        tags: postInfo.tags,
-        summary: postInfo.summary,
-        link: postInfo.link
-      }])
     }
   }
 
